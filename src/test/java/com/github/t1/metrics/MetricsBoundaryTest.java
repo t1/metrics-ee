@@ -11,8 +11,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import javax.ws.rs.core.*;
 import java.util.Map;
 
-import static javax.ws.rs.core.HttpHeaders.*;
-import static javax.ws.rs.core.MediaType.*;
 import static org.assertj.core.api.Assertions.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -33,10 +31,9 @@ public class MetricsBoundaryTest {
     }
 
     @Test
-    public void shouldGetNoMetrics() throws Exception {
+    public void shouldGetNoMetricsWith() throws Exception {
         Response response = resource.getMetrics();
 
-        assertThat(response.getHeaderString(CONTENT_TYPE)).isEqualTo(APPLICATION_JSON);
         assertThat(metrics(response)).isEmpty();
     }
 
@@ -47,7 +44,6 @@ public class MetricsBoundaryTest {
 
         Response response = resource.getMetrics();
 
-        assertThat(response.getHeaderString(CONTENT_TYPE)).isEqualTo(APPLICATION_JSON);
         assertThat(metrics(response).get("counter")).containsOnly(entry("foo", counter));
     }
 
@@ -58,7 +54,6 @@ public class MetricsBoundaryTest {
 
         Response response = resource.getMetrics();
 
-        assertThat(response.getHeaderString(CONTENT_TYPE)).isEqualTo(APPLICATION_JSON);
         assertThat(metrics(response).get("gauge")).containsOnly(entry("foo", gauge));
     }
 
@@ -69,7 +64,19 @@ public class MetricsBoundaryTest {
 
         Response response = resource.getMetrics();
 
-        assertThat(response.getHeaderString(CONTENT_TYPE)).isEqualTo(APPLICATION_JSON);
         assertThat(metrics(response).get("other")).containsOnly(entry("foo", metric));
+    }
+
+    @Test
+    public void shouldGetDifferentMetrics() throws Exception {
+        Counter counter = new Counter();
+        metrics.register("foo", counter);
+        Gauge gauge = () -> 3;
+        metrics.register("bar", gauge);
+
+        Response response = resource.getMetrics();
+
+        assertThat(metrics(response).get("counter")).containsOnly(entry("foo", counter));
+        assertThat(metrics(response).get("gauge")).containsOnly(entry("bar", gauge));
     }
 }
