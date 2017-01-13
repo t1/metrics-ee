@@ -1,0 +1,12 @@
+target/
+
+.settings/
+.classpath
+.project
+
+.idea/
+metrics-ee.iml
+
+.DS_Store
+
+jmeter.log
