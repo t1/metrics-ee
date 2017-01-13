@@ -58,13 +58,43 @@ public class MetricsBoundaryTest {
     }
 
     @Test
+    public void shouldGetOneHistogram() throws Exception {
+        Histogram histogram = new Histogram(new ExponentiallyDecayingReservoir());
+        metrics.register("foo", histogram);
+
+        Response response = resource.getMetrics();
+
+        assertThat(metrics(response).get("histogram")).containsOnly(entry("foo", histogram));
+    }
+
+    @Test
+    public void shouldGetOneMeter() throws Exception {
+        Meter meter = new Meter();
+        metrics.register("foo", meter);
+
+        Response response = resource.getMetrics();
+
+        assertThat(metrics(response).get("meter")).containsOnly(entry("foo", meter));
+    }
+
+    @Test
+    public void shouldGetOneTimer() throws Exception {
+        Timer timer = new Timer();
+        metrics.register("foo", timer);
+
+        Response response = resource.getMetrics();
+
+        assertThat(metrics(response).get("timer")).containsOnly(entry("foo", timer));
+    }
+
+    @Test
     public void shouldGetOneOtherMetric() throws Exception {
         Metric metric = new Metric() {};
         metrics.register("foo", metric);
 
         Response response = resource.getMetrics();
 
-        assertThat(metrics(response).get("other")).containsOnly(entry("foo", metric));
+        assertThat(metrics(response).get("metric")).containsOnly(entry("foo", metric));
     }
 
     @Test
@@ -78,5 +108,15 @@ public class MetricsBoundaryTest {
 
         assertThat(metrics(response).get("counter")).containsOnly(entry("foo", counter));
         assertThat(metrics(response).get("gauge")).containsOnly(entry("bar", gauge));
+    }
+
+    @Test
+    public void shouldGetMetricSet() throws Exception {
+        MetricSet set = new JvmAttributeGaugeSet();
+        metrics.register("bar", set);
+
+        Response response = resource.getMetrics();
+
+        assertThat(metrics(response).get("gauge").keySet()).containsOnly("bar.name", "bar.vendor", "bar.uptime");
     }
 }

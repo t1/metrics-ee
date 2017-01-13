@@ -1,6 +1,7 @@
 package com.github.t1.metrics;
 
 import com.codahale.metrics.*;
+import com.codahale.metrics.Timer;
 import com.codahale.metrics.health.HealthCheck.Result;
 import com.codahale.metrics.health.HealthCheckRegistry;
 
@@ -36,8 +37,14 @@ public class MetricsBoundary {
             return "counter";
         else if (metric instanceof Gauge)
             return "gauge";
+        else if (metric instanceof Histogram)
+            return "histogram";
+        else if (metric instanceof Meter)
+            return "meter";
+        else if (metric instanceof Timer)
+            return "timer";
         else
-            return "other";
+            return "metric";
     }
 
     @GET
