@@ -2,6 +2,7 @@ package com.github.t1.metrics;
 
 import com.codahale.metrics.*;
 import com.codahale.metrics.health.*;
+import com.codahale.metrics.jvm.*;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.PostConstruct;
@@ -9,6 +10,9 @@ import javax.enterprise.inject.*;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.*;
 import java.lang.reflect.Member;
+
+import static java.lang.management.ManagementFactory.*;
+import static java.util.concurrent.TimeUnit.*;
 
 @Slf4j
 @Singleton
@@ -38,6 +42,13 @@ public class MetricsProducers {
             log.debug("register gauge: {}", name);
             metrics.register(name, gauge);
         }
+
+        metrics.register("jvm", new JvmAttributeGaugeSet());
+        metrics.register("jvm.class-loader", new ClassLoadingGaugeSet());
+        metrics.register("jvm.buffer-pools", new BufferPoolMetricSet(getPlatformMBeanServer()));
+        metrics.register("jvm.gc", new GarbageCollectorMetricSet());
+        metrics.register("jvm.memory", new MemoryUsageGaugeSet());
+        metrics.register("jvm.threads", new CachedThreadStatesGaugeSet(1, MINUTES));
     }
 
     @Produces public MetricRegistry produceMetricRegistry() { return metrics; }
