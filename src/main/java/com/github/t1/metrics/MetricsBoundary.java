@@ -1,7 +1,6 @@
 package com.github.t1.metrics;
 
-import com.codahale.metrics.*;
-import com.codahale.metrics.Timer;
+import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheck.Result;
 import com.codahale.metrics.health.HealthCheckRegistry;
 
@@ -9,7 +8,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.MediaType;
-import java.util.*;
+import java.util.SortedMap;
 
 import static javax.ws.rs.core.MediaType.*;
 import static javax.ws.rs.core.Response.Status.*;
@@ -24,28 +23,7 @@ public class MetricsBoundary {
 
     @GET
     @Path("/-metrics")
-    public Response getMetrics() {
-        Map<String, Map<String, Metric>> grouped = new TreeMap<>();
-        this.metrics.getMetrics().entrySet().forEach(entry -> grouped
-                .computeIfAbsent(name(entry.getValue()), s -> new TreeMap<>())
-                .put(entry.getKey(), entry.getValue()));
-        return Response.ok(grouped, responseType()).build();
-    }
-
-    @SuppressWarnings("ChainOfInstanceofChecks") private String name(Metric metric) {
-        if (metric instanceof Counter)
-            return "counter";
-        else if (metric instanceof Gauge)
-            return "gauge";
-        else if (metric instanceof Histogram)
-            return "histogram";
-        else if (metric instanceof Meter)
-            return "meter";
-        else if (metric instanceof Timer)
-            return "timer";
-        else
-            return "metric";
-    }
+    public Response getMetrics() { return Response.ok(metrics, responseType()).build(); }
 
     @GET
     @Path("/-healthchecks")

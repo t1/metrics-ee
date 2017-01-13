@@ -9,7 +9,6 @@ import org.mockito.*;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import javax.ws.rs.core.*;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -26,15 +25,13 @@ public class MetricsBoundaryTest {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, Map<String, Metric>> metrics(Response response) {
-        return (Map<String, Map<String, Metric>>) response.getEntity();
-    }
+    private MetricRegistry metrics(Response response) { return (MetricRegistry) response.getEntity(); }
 
     @Test
     public void shouldGetNoMetricsWith() throws Exception {
         Response response = resource.getMetrics();
 
-        assertThat(metrics(response)).isEmpty();
+        assertThat(metrics(response).getMetrics()).isEmpty();
     }
 
     @Test
@@ -44,7 +41,7 @@ public class MetricsBoundaryTest {
 
         Response response = resource.getMetrics();
 
-        assertThat(metrics(response).get("counter")).containsOnly(entry("foo", counter));
+        assertThat(metrics(response).getCounters()).containsOnly(entry("foo", counter));
     }
 
     @Test
@@ -54,7 +51,7 @@ public class MetricsBoundaryTest {
 
         Response response = resource.getMetrics();
 
-        assertThat(metrics(response).get("gauge")).containsOnly(entry("foo", gauge));
+        assertThat(metrics(response).getGauges()).containsOnly(entry("foo", gauge));
     }
 
     @Test
@@ -64,7 +61,7 @@ public class MetricsBoundaryTest {
 
         Response response = resource.getMetrics();
 
-        assertThat(metrics(response).get("histogram")).containsOnly(entry("foo", histogram));
+        assertThat(metrics(response).getHistograms()).containsOnly(entry("foo", histogram));
     }
 
     @Test
@@ -74,7 +71,7 @@ public class MetricsBoundaryTest {
 
         Response response = resource.getMetrics();
 
-        assertThat(metrics(response).get("meter")).containsOnly(entry("foo", meter));
+        assertThat(metrics(response).getMeters()).containsOnly(entry("foo", meter));
     }
 
     @Test
@@ -84,7 +81,7 @@ public class MetricsBoundaryTest {
 
         Response response = resource.getMetrics();
 
-        assertThat(metrics(response).get("timer")).containsOnly(entry("foo", timer));
+        assertThat(metrics(response).getTimers()).containsOnly(entry("foo", timer));
     }
 
     @Test
@@ -94,7 +91,7 @@ public class MetricsBoundaryTest {
 
         Response response = resource.getMetrics();
 
-        assertThat(metrics(response).get("metric")).containsOnly(entry("foo", metric));
+        assertThat(metrics(response).getMetrics()).containsOnly(entry("foo", metric));
     }
 
     @Test
@@ -106,8 +103,8 @@ public class MetricsBoundaryTest {
 
         Response response = resource.getMetrics();
 
-        assertThat(metrics(response).get("counter")).containsOnly(entry("foo", counter));
-        assertThat(metrics(response).get("gauge")).containsOnly(entry("bar", gauge));
+        assertThat(metrics(response).getCounters()).containsOnly(entry("foo", counter));
+        assertThat(metrics(response).getGauges()).containsOnly(entry("bar", gauge));
     }
 
     @Test
@@ -117,6 +114,6 @@ public class MetricsBoundaryTest {
 
         Response response = resource.getMetrics();
 
-        assertThat(metrics(response).get("gauge").keySet()).containsOnly("bar.name", "bar.vendor", "bar.uptime");
+        assertThat(metrics(response).getGauges().keySet()).containsOnly("bar.name", "bar.vendor", "bar.uptime");
     }
 }
