@@ -181,6 +181,7 @@ public class MetricsYamlMessageBodyWriterTest {
                 + "    max: 9\n"
                 + "    mean: 8.99448616284921\n"
                 + "    min: 2\n"
+                + "    stddev: 0.19461071021198567\n"
                 + "    p50: 9.0\n"
                 + "    p75: 9.0\n"
                 + "    p95: 9.0\n"
@@ -199,10 +200,10 @@ public class MetricsYamlMessageBodyWriterTest {
                 + "meters:\n"
                 + "  foo:\n"
                 + "    count: 18\n"
-                + "    m15_rate: 0.2579529801079934\n"
+                + "    mean_rate: 0.023076923076923078\n"
                 + "    m1_rate: 8.44290068149477E-6\n"
                 + "    m5_rate: 0.048504583236971655\n"
-                + "    mean_rate: 0.023076923076923078\n");
+                + "    m15_rate: 0.2579529801079934\n");
     }
 
     @Test
@@ -215,13 +216,14 @@ public class MetricsYamlMessageBodyWriterTest {
                 + "timers:\n"
                 + "  foo:\n"
                 + "    count: 4\n"
-                + "    m15_rate: 0.09461821810107368\n"
+                + "    mean_rate: 0.005797101449275362\n"
                 + "    m1_rate: 8.32298920294135E-6\n"
                 + "    m5_rate: 0.021439832209417236\n"
-                + "    mean_rate: 0.005797101449275362\n"
+                + "    m15_rate: 0.09461821810107368\n"
                 + "    max: 25000000\n"
                 + "    mean: 1.8E7\n"
                 + "    min: 12000000\n"
+                + "    stddev: 4949747.468305833\n"
                 + "    p50: 2.0E7\n"
                 + "    p75: 2.5E7\n"
                 + "    p95: 2.5E7\n"

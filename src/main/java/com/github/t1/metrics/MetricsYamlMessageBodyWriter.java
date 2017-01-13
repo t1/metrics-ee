@@ -84,15 +84,16 @@ public class MetricsYamlMessageBodyWriter implements MessageBodyWriter<MetricReg
             if (value instanceof Gauge)
                 attributes.put("value", v -> ((Gauge) v).getValue());
             if (value instanceof Metered) {
-                attributes.put("m15_rate", v -> ((Metered) v).getFifteenMinuteRate());
+                attributes.put("mean_rate", v -> ((Metered) v).getMeanRate());
                 attributes.put("m1_rate", v -> ((Metered) v).getOneMinuteRate());
                 attributes.put("m5_rate", v -> ((Metered) v).getFiveMinuteRate());
-                attributes.put("mean_rate", v -> ((Metered) v).getMeanRate());
+                attributes.put("m15_rate", v -> ((Metered) v).getFifteenMinuteRate());
             }
             if (value instanceof Sampling) {
                 attributes.put("max", v -> ((Sampling) v).getSnapshot().getMax());
                 attributes.put("mean", v -> ((Sampling) v).getSnapshot().getMean());
                 attributes.put("min", v -> ((Sampling) v).getSnapshot().getMin());
+                attributes.put("stddev", v -> ((Sampling) v).getSnapshot().getStdDev());
                 attributes.put("p50", v -> ((Sampling) v).getSnapshot().getMedian());
                 attributes.put("p75", v -> ((Sampling) v).getSnapshot().get75thPercentile());
                 attributes.put("p95", v -> ((Sampling) v).getSnapshot().get95thPercentile());
