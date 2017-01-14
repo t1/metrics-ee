@@ -1,7 +1,6 @@
 package com.github.t1.metrics;
 
 import com.codahale.metrics.*;
-import com.codahale.metrics.Timer;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,27 +36,20 @@ public class MetricsYamlMessageBodyWriter implements MessageBodyWriter<MetricReg
             MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
             throws IOException, WebApplicationException {
         try (Writer out = new OutputStreamWriter(entityStream)) {
-            new MetricsWriter<Counter>(out, "counters", metrics.getCounters()).write();
-            new MetricsWriter<Gauge>(out, "gauges", metrics.getGauges()).write();
-            new MetricsWriter<Meter>(out, "meters", metrics.getMeters()).write();
-            new MetricsWriter<Histogram>(out, "histograms", metrics.getHistograms()).write();
-            new MetricsWriter<Timer>(out, "timers", metrics.getTimers()).write();
+            new MetricsWriter(out, new TreeMap<>(metrics.getMetrics())).write();
         }
     }
 
     @RequiredArgsConstructor
-    private class MetricsWriter<T extends Metric> {
+    private class MetricsWriter {
         private final Writer out;
-        private final String name;
         @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-        private final SortedMap<String, T> metrics;
+        private final SortedMap<String, Metric> metrics;
 
         private String lastPath;
 
         public void write() {
-            write(name);
-            write(":");
-            for (Map.Entry<String, T> entry : metrics.entrySet()) {
+            for (Map.Entry<String, Metric> entry : metrics.entrySet()) {
                 String pad = writeKey(entry.getKey());
                 writeValue(pad, entry.getValue());
             }
@@ -65,7 +57,7 @@ public class MetricsYamlMessageBodyWriter implements MessageBodyWriter<MetricReg
         }
 
         private String writeKey(String key) {
-            String pad = "\n  ";
+            String pad = "\n";
             String path = "";
             for (String item : key.split("\\.")) {
                 path += item + ".";
@@ -77,8 +69,8 @@ public class MetricsYamlMessageBodyWriter implements MessageBodyWriter<MetricReg
             return pad;
         }
 
-        @SuppressWarnings("ChainOfInstanceofChecks") private void writeValue(String pad, T value) {
-            Map<String, Function<T, Object>> attributes = new LinkedHashMap<>();
+        @SuppressWarnings("ChainOfInstanceofChecks") private void writeValue(String pad, Metric value) {
+            Map<String, Function<Metric, Object>> attributes = new LinkedHashMap<>();
             if (value instanceof Counting)
                 attributes.put("count", v -> ((Counting) v).getCount());
             if (value instanceof Gauge)
