@@ -16,7 +16,7 @@ import static java.util.concurrent.TimeUnit.*;
 
 @Slf4j
 @Singleton
-public class MetricsProducers {
+public class CdiBinding {
     private final MetricRegistry metrics = new MetricRegistry();
     private final HealthCheckRegistry healthCheckRegistry = new HealthCheckRegistry();
 
