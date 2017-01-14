@@ -36,40 +36,38 @@ public class MetricsYamlMessageBodyWriter implements MessageBodyWriter<MetricReg
             MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
             throws IOException, WebApplicationException {
         try (Writer out = new OutputStreamWriter(entityStream)) {
-            new MetricsWriter(out, new TreeMap<>(metrics.getMetrics())).write();
+            new MetricsWriter(out).write(new TreeMap<>(metrics.getMetrics()));
         }
     }
 
     @RequiredArgsConstructor
     private class MetricsWriter {
         private final Writer out;
-        @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-        private final SortedMap<String, Metric> metrics;
 
         private String lastPath;
 
-        public void write() {
+        public void write(SortedMap<String, Metric> metrics) {
             for (Map.Entry<String, Metric> entry : metrics.entrySet()) {
-                String pad = writeKey(entry.getKey());
-                writeValue(pad, entry.getValue());
+                String padding = writeKey(entry.getKey());
+                writeValue(padding, entry.getValue());
             }
             write("\n");
         }
 
         private String writeKey(String key) {
-            String pad = "\n";
+            String padding = "\n";
             String path = "";
             for (String item : key.split("\\.")) {
                 path += item + ".";
                 if (lastPath == null || !lastPath.startsWith(path))
-                    write(pad + item + ":");
-                pad += "  ";
+                    write(padding + item + ":");
+                padding += "  ";
             }
             lastPath = path;
-            return pad;
+            return padding;
         }
 
-        @SuppressWarnings("ChainOfInstanceofChecks") private void writeValue(String pad, Metric value) {
+        @SuppressWarnings("ChainOfInstanceofChecks") private void writeValue(String padding, Metric value) {
             Map<String, Function<Metric, Object>> attributes = new LinkedHashMap<>();
             if (value instanceof Counting)
                 attributes.put("count", v -> ((Counting) v).getCount());
@@ -102,7 +100,7 @@ public class MetricsYamlMessageBodyWriter implements MessageBodyWriter<MetricReg
                 write(" " + attributes.values().iterator().next().apply(value));
                 break;
             default:
-                attributes.forEach((n, f) -> write(pad + n + ": " + f.apply(value)));
+                attributes.forEach((n, f) -> write(padding + n + ": " + f.apply(value)));
                 break;
             }
         }
