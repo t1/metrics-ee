@@ -1,8 +1,17 @@
 # Metrics-EE [ ![Download](https://api.bintray.com/packages/t1/javaee-helpers/metrics-ee/images/download.svg) ](https://bintray.com/t1/javaee-helpers/metrics-ee/_latestVersion)
 
-Binds [Metrics](https://metrics.dropwizard.io) to Java EE, times all JAX-RS endpoints and client calls,
-and exposes all metrics at `https://<your-host>/<your-app>/-metrics`.
-You can also add custom metrics and health checks.
+Binds [Dropwizard Metrics](https://metrics.dropwizard.io) to Java EE,
+i.e. it times all JAX-RS endpoints called and all clients calling,
+and exposes all metrics and health checks at:
+
+`https://<your-host>/<your-app>/-metrics`
+
+and
+
+`https://<your-host>/<your-app>/-healthchecks`
+
+You can also add custom metrics and health checks – just implement the `Gauge` or `HealthCheck` interfaces,
+or extend `GaugedHealthCheck` to have a health check that provides the ratio as gauge.
 
 In a Java EE 6+ `war`, all you need to add is this dependency (and add a `beans.xml`, if you don't have one, yet):
 

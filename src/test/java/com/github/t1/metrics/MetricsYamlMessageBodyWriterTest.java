@@ -1,10 +1,12 @@
 package com.github.t1.metrics;
 
 import com.codahale.metrics.*;
+import com.codahale.metrics.Timer;
 import org.junit.Test;
 
 import java.io.*;
 import java.lang.annotation.Annotation;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.github.t1.metrics.MetricsYamlMessageBodyWriter.*;
@@ -59,14 +61,17 @@ public class MetricsYamlMessageBodyWriterTest {
     private String write() throws IOException {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Class<MetricRegistry> type = MetricRegistry.class;
-            writer.writeTo(metrics, type, type, new Annotation[0], APPLICATION_YAML_TYPE, null, out);
+            writer.writeTo(metrics(), type, type, new Annotation[0], APPLICATION_YAML_TYPE, null, out);
             return out.toString("UTF-8");
         }
     }
 
+    private SortedMap<String, Metric> metrics() { return new TreeMap<>(metrics.getMetrics()); }
+
     @Test
     public void shouldBeWritable() throws Exception {
-        boolean writeable = writer.isWriteable(MetricRegistry.class, MetricRegistry.class, null, APPLICATION_YAML_TYPE);
+        boolean writeable = writer.isWriteable(MetricRegistry.class, METRICS_MAP.getType(), null,
+                APPLICATION_YAML_TYPE);
 
         assertThat(writeable).isTrue();
     }
@@ -94,7 +99,8 @@ public class MetricsYamlMessageBodyWriterTest {
 
     @Test
     public void shouldHaveSizeMinusOne() throws Exception {
-        long size = writer.getSize(metrics, MetricRegistry.class, MetricRegistry.class, null, APPLICATION_YAML_TYPE);
+        long size = writer.getSize(metrics(), MetricRegistry.class, MetricRegistry.class, null,
+                APPLICATION_YAML_TYPE);
 
         assertThat(size).isEqualTo(-1);
     }
