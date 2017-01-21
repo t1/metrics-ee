@@ -2,7 +2,9 @@ package com.github.t1.metrics;
 
 import com.codahale.metrics.*;
 import com.codahale.metrics.Timer;
+import com.github.t1.testtools.OrderedJUnitRunner;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.*;
 import java.lang.annotation.Annotation;
@@ -14,9 +16,16 @@ import static java.time.temporal.ChronoUnit.*;
 import static javax.ws.rs.core.MediaType.*;
 import static org.assertj.core.api.Assertions.*;
 
+@RunWith(OrderedJUnitRunner.class)
 public class MetricsYamlMessageBodyWriterTest {
     private final MetricRegistry metrics = new MetricRegistry();
     private final MetricsYamlMessageBodyWriter writer = new MetricsYamlMessageBodyWriter();
+
+    private Counter counter(long count) {
+        Counter counter = new Counter();
+        counter.inc(count);
+        return counter;
+    }
 
     private Meter meter() {
         MockClock clock = new MockClock();
@@ -114,12 +123,12 @@ public class MetricsYamlMessageBodyWriterTest {
 
     @Test
     public void shouldWriteOneCounter() throws Exception {
-        metrics.register("foo", new Counter());
+        metrics.register("foo", counter(3));
 
         String out = write();
 
         assertThat(out).isEqualTo("\n"
-                + "foo: 0\n");
+                + "foo: 3\n");
     }
 
     @Test
@@ -145,30 +154,6 @@ public class MetricsYamlMessageBodyWriterTest {
     }
 
     @Test
-    public void shouldWriteOneGaugeWithDot() throws Exception {
-        metrics.register("foo.bar", (Gauge) () -> 1);
-
-        String out = write();
-
-        assertThat(out).isEqualTo("\n"
-                + "foo:\n"
-                + "  bar: 1\n");
-    }
-
-    @Test
-    public void shouldWriteTwoGaugesWithDot() throws Exception {
-        metrics.register("foo.bar", (Gauge) () -> 1);
-        metrics.register("foo.baz", (Gauge) () -> 2);
-
-        String out = write();
-
-        assertThat(out).isEqualTo("\n"
-                + "foo:\n"
-                + "  bar: 1\n"
-                + "  baz: 2\n");
-    }
-
-    @Test
     public void shouldWriteOneHistogram() throws Exception {
         metrics.register("foo", histogram());
 
@@ -177,9 +162,9 @@ public class MetricsYamlMessageBodyWriterTest {
         assertThat(out).isEqualTo("\n"
                 + "foo:\n"
                 + "  count: 4\n"
-                + "  max: 9\n"
-                + "  mean: 8.99448616284921\n"
                 + "  min: 2\n"
+                + "  mean: 8.99448616284921\n"
+                + "  max: 9\n"
                 + "  stddev: 0.19461071021198567\n"
                 + "  p50: 9.0\n"
                 + "  p75: 9.0\n"
@@ -217,9 +202,9 @@ public class MetricsYamlMessageBodyWriterTest {
                 + "  m1_rate: 8.32298920294135E-6\n"
                 + "  m5_rate: 0.021439832209417236\n"
                 + "  m15_rate: 0.09461821810107368\n"
-                + "  max: 25000000\n"
-                + "  mean: 1.8E7\n"
                 + "  min: 12000000\n"
+                + "  mean: 1.8E7\n"
+                + "  max: 25000000\n"
                 + "  stddev: 4949747.468305833\n"
                 + "  p50: 2.0E7\n"
                 + "  p75: 2.5E7\n"
@@ -242,14 +227,38 @@ public class MetricsYamlMessageBodyWriterTest {
     }
 
     @Test
+    public void shouldWriteOneWithDot() throws Exception {
+        metrics.register("foo.bar", (Gauge) () -> 1);
+
+        String out = write();
+
+        assertThat(out).isEqualTo("\n"
+                + "foo:\n"
+                + "  bar: 1\n");
+    }
+
+    @Test
+    public void shouldWriteTwoWithDot() throws Exception {
+        metrics.register("foo.bar", (Gauge) () -> 1);
+        metrics.register("foo.baz", (Gauge) () -> 2);
+
+        String out = write();
+
+        assertThat(out).isEqualTo("\n"
+                + "foo:\n"
+                + "  bar: 1\n"
+                + "  baz: 2\n");
+    }
+
+    @Test
     public void shouldWriteManyWithDots() throws Exception {
         metrics.register("aaa.bbb.ccc.ddd", (Gauge) () -> 1);
-        metrics.register("aaa.bbb.ccc.eee", (Gauge) () -> 2);
+        metrics.register("aaa.bbb.ccc.eee", counter(2));
         metrics.register("aaa.bbb.ccc.fff", (Gauge) () -> 3);
         metrics.register("aaa.bbb.ggg", (Gauge) () -> 4);
         metrics.register("aaa.bbb.hhh", (Gauge) () -> 5);
         metrics.register("jjj", (Gauge) () -> 6);
-        metrics.register("aaa.iii", new Counter()); // will be sorted in
+        metrics.register("aaa.iii", counter(0)); // will be sorted in
 
         String out = write();
 
@@ -264,5 +273,132 @@ public class MetricsYamlMessageBodyWriterTest {
                 + "    hhh: 5\n"
                 + "  iii: 0\n"
                 + "jjj: 6\n");
+    }
+
+    @Test
+    public void shouldWriteOneWithSlash() throws Exception {
+        metrics.register("foo/bar", (Gauge) () -> 1);
+
+        String out = write();
+
+        assertThat(out).isEqualTo("\n"
+                + "foo:\n"
+                + "  /bar: 1\n");
+    }
+
+    @Test
+    public void shouldWriteOneWithDotAndSlash() throws Exception {
+        metrics.register("foo.bar/baz", (Gauge) () -> 1);
+
+        String out = write();
+
+        assertThat(out).isEqualTo("\n"
+                + "foo:\n"
+                + "  bar:\n"
+                + "    /baz: 1\n");
+    }
+
+    @Test
+    public void shouldWriteOneWithSlashAndDot() throws Exception {
+        metrics.register("foo/bar.baz", (Gauge) () -> 1);
+
+        String out = write();
+
+        assertThat(out).isEqualTo("\n"
+                + "foo:\n"
+                + "  /bar.baz: 1\n");
+    }
+
+    @Test
+    public void shouldWriteOneWithSlashAndPipe() throws Exception {
+        metrics.register("foo/bar|baz", (Gauge) () -> 1);
+
+        String out = write();
+
+        assertThat(out).isEqualTo("\n"
+                + "foo:\n"
+                + "  /bar:\n"
+                + "    baz: 1\n");
+    }
+
+    @Test
+    public void shouldWriteOneWithPipeAndSlash() throws Exception {
+        metrics.register("foo|bar/baz", (Gauge) () -> 1);
+
+        String out = write();
+
+        assertThat(out).isEqualTo("\n"
+                + "foo|bar:\n"
+                + "  /baz: 1\n");
+    }
+
+    @Test
+    public void shouldWriteOneWithDotAndPipe() throws Exception {
+        metrics.register("foo.bar|baz", (Gauge) () -> 1);
+
+        String out = write();
+
+        assertThat(out).isEqualTo("\n"
+                + "foo:\n"
+                + "  bar|baz: 1\n");
+    }
+
+    @Test
+    public void shouldWriteOneWithPipeAndDot() throws Exception {
+        metrics.register("foo|bar.baz", (Gauge) () -> 1);
+
+        String out = write();
+
+        assertThat(out).isEqualTo("\n"
+                + "foo|bar:\n"
+                + "  baz: 1\n");
+    }
+
+    @Test
+    public void shouldWriteOneWithDotAndSlashAndPipe() throws Exception {
+        metrics.register("foo.bar/baz|bee", (Gauge) () -> 1);
+
+        String out = write();
+
+        assertThat(out).isEqualTo("\n"
+                + "foo:\n"
+                + "  bar:\n"
+                + "    /baz:\n"
+                + "      bee: 1\n");
+    }
+
+    @Test
+    public void shouldWriteOneWithSlashAndDotAndPipe() throws Exception {
+        metrics.register("foo/bar.baz|bee", (Gauge) () -> 1);
+
+        String out = write();
+
+        assertThat(out).isEqualTo("\n"
+                + "foo:\n"
+                + "  /bar.baz:\n"
+                + "    bee: 1\n");
+    }
+
+    @Test
+    public void shouldWriteOneWithPipeAndSlashAndDot() throws Exception {
+        metrics.register("foo|bar/baz.bee", (Gauge) () -> 1);
+
+        String out = write();
+
+        assertThat(out).isEqualTo("\n"
+                + "foo|bar:\n"
+                + "  /baz.bee: 1\n");
+    }
+
+    @Test
+    public void shouldWriteOneWithDotAndPipeAndSlash() throws Exception {
+        metrics.register("foo.bar|baz/bee", (Gauge) () -> 1);
+
+        String out = write();
+
+        assertThat(out).isEqualTo("\n"
+                + "foo:\n"
+                + "  bar|baz:\n"
+                + "    /bee: 1\n");
     }
 }

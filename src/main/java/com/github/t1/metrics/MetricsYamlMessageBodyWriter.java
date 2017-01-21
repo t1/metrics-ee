@@ -59,11 +59,29 @@ public class MetricsYamlMessageBodyWriter implements MessageBodyWriter<SortedMap
         private String writeKey(String key) {
             String padding = "\n";
             String path = "";
-            for (String item : key.split("\\.")) {
-                path += item + ".";
+            String[] slashItems = key.split("/", 2);
+            for (String dotItem : slashItems[0].split("\\.")) {
+                path += dotItem + ".";
                 if (lastPath == null || !lastPath.startsWith(path))
-                    write(padding + item + ":");
+                    write(padding + dotItem + ":");
                 padding += "  ";
+            }
+            if (slashItems.length == 2) {
+                String[] pipeItems = slashItems[1].split("\\|", 2);
+                for (String slashItem : pipeItems[0].split("/")) {
+                    path += slashItem + "|";
+                    if (lastPath == null || !lastPath.startsWith(path))
+                        write(padding + "/" + slashItem + ":");
+                    padding += "  ";
+                }
+                if (pipeItems.length == 2) {
+                    for (String pipeItem : pipeItems[1].split("\\|")) {
+                        path += pipeItem + "|";
+                        if (lastPath == null || !lastPath.startsWith(path))
+                            write(padding + pipeItem + ":");
+                        padding += "  ";
+                    }
+                }
             }
             lastPath = path;
             return padding;
@@ -87,9 +105,9 @@ public class MetricsYamlMessageBodyWriter implements MessageBodyWriter<SortedMap
                 attributes.put("m15_rate", v -> ((Metered) v).getFifteenMinuteRate());
             }
             if (value instanceof Sampling) {
-                attributes.put("max", v -> ((Sampling) v).getSnapshot().getMax());
-                attributes.put("mean", v -> ((Sampling) v).getSnapshot().getMean());
                 attributes.put("min", v -> ((Sampling) v).getSnapshot().getMin());
+                attributes.put("mean", v -> ((Sampling) v).getSnapshot().getMean());
+                attributes.put("max", v -> ((Sampling) v).getSnapshot().getMax());
                 attributes.put("stddev", v -> ((Sampling) v).getSnapshot().getStdDev());
                 attributes.put("p50", v -> ((Sampling) v).getSnapshot().getMedian());
                 attributes.put("p75", v -> ((Sampling) v).getSnapshot().get75thPercentile());

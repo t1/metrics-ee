@@ -1,8 +1,6 @@
 package com.github.t1.metrics;
 
-import com.codahale.metrics.health.HealthCheck;
-
-public class MockHealthCheck extends HealthCheck {
+public class MockGaugedHealthCheck extends GaugedHealthCheck {
     private int counter = 0;
 
     @Override protected Result check() throws Exception {

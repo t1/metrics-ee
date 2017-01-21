@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.inject.Inject;
 import javax.ws.rs.client.*;
 import javax.ws.rs.container.*;
+import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.ext.Provider;
 import java.time.Instant;
 import java.time.temporal.Temporal;
@@ -28,13 +29,14 @@ public class JaxRsBinding implements
     @Override
     public void filter(ContainerRequestContext request, ContainerResponseContext response) {
         updateTimer(name("resources", request.getUriInfo().getPath(), request.getMethod()),
+                response.getStatusInfo(),
                 request.getProperty(START_INSTANT));
     }
 
     private String name(String type, String path, String method) {
         if (!path.startsWith("/"))
-            path = "/" + path; // Dropwizard
-        return type + path.replace("/", "./") + "." + method;
+            path = "/" + path; // Dropwizard quirk
+        return type + path + "|" + method;
     }
 
     @Override
@@ -43,10 +45,14 @@ public class JaxRsBinding implements
     @Override
     public void filter(ClientRequestContext request, ClientResponseContext response) {
         updateTimer(name("calls", request.getUri().getPath(), request.getMethod()),
+                response.getStatusInfo(),
                 request.getProperty(START_INSTANT));
     }
 
-    private void updateTimer(String name, Object startInstant) {
-        metrics.timer(name).update(((Temporal) startInstant).until(Instant.now(), MILLIS), MILLISECONDS);
+    private void updateTimer(String name, StatusType status, Object startInstant) {
+        long time = (startInstant == null) ? -1 : ((Temporal) startInstant).until(Instant.now(), MILLIS);
+        metrics.timer(name + "|timer").update(time, MILLISECONDS);
+        metrics.meter(name + "|" + status.getFamily()).mark();
+        metrics.meter(name + "|" + status.getStatusCode()).mark();
     }
 }

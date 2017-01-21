@@ -12,8 +12,10 @@ and
 
 You can also add custom metrics and health checks – just implement the `Gauge` or `HealthCheck` interfaces,
 or extend `GaugedHealthCheck` to have a health check that provides the ratio as gauge.
+Or `@Inject` dependent instances of `Counter`, `Meter`, or `Timer`.
+Or `@Inject` the `MetricsRegistry` or `HealthCheckRegistry` for full control.
 
-In a Java EE 6+ `war`, all you need to add is this dependency (and add a `beans.xml`, if you don't have one, yet):
+In a Java EE 7+ `war`, all you need to add is this dependency (and add a `beans.xml`, if you don't have one, yet):
 
     <dependency>
         <groupId>com.github.t1</groupId>

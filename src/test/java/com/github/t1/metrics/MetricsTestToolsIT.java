@@ -1,13 +1,15 @@
 package com.github.t1.metrics;
 
-import com.github.t1.testtools.WildflyContainerTestRule;
+import com.github.t1.testtools.*;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.*;
+import org.junit.runner.RunWith;
 
 import javax.ws.rs.client.*;
 
 import static com.github.t1.log.LogLevel.*;
 
+@RunWith(OrderedJUnitRunner.class)
 public class MetricsTestToolsIT extends MetricsIT {
     @ClassRule public static WildflyContainerTestRule container = new WildflyContainerTestRule("10.1.0.Final")
             .withLogger("org.apache.http.headers", DEBUG)
